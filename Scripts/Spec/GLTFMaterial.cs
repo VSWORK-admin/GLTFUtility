@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -83,9 +83,10 @@ namespace Siccity.GLTFUtility {
 				while (en.MoveNext()) { yield return null; };
 			}
 
-			if (alphaMode == AlphaMode.MASK) {
-				mat.SetFloat("_AlphaCutoff", alphaCutoff);
-			}
+            if (alphaMode == AlphaMode.MASK)
+            {
+                mat.SetFloat("_AlphaCutoff", alphaCutoff);
+            }
 			mat.name = name;
 			onFinish(mat);
 		}
@@ -127,16 +128,29 @@ namespace Siccity.GLTFUtility {
 				// LWRP support
 				if (GraphicsSettings.renderPipelineAsset) sh = GraphicsSettings.renderPipelineAsset.defaultShader;
 #endif
-				if (sh == null) {
-					if (alphaMode == AlphaMode.BLEND) sh = shaderSettings.MetallicBlend;
+                
+                if (sh == null) {
+                    if (alphaMode == AlphaMode.BLEND) {
+                        sh = shaderSettings.MetallicBlend;
+                        
+                    } 
 					else sh = shaderSettings.Metallic;
 				}
+                Material mat = new Material(sh);
+                // Material
 
-				// Material
-				Material mat = new Material(sh);
-				mat.color = baseColorFactor;
+                mat.color = baseColorFactor;
 				mat.SetFloat("_Metallic", metallicFactor);
 				mat.SetFloat("_Roughness", roughnessFactor);
+                if (alphaMode == AlphaMode.BLEND) {
+                    mat.SetOverrideTag("RenderType", "Transparent");
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", 0);
+                    mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    mat.SetShaderPassEnabled("ShadowCaster", false);
+                }
 
 				// Assign textures
 				if (textures != null) {
@@ -195,14 +209,27 @@ namespace Siccity.GLTFUtility {
 				// LWRP support
 				if (GraphicsSettings.renderPipelineAsset) sh = GraphicsSettings.renderPipelineAsset.defaultShader;
 #endif
-				if (sh == null) {
-					if (alphaMode == AlphaMode.BLEND) sh = shaderSettings.SpecularBlend;
+                
+                if (sh == null) {
+                    if (alphaMode == AlphaMode.BLEND) {
+                        sh = shaderSettings.SpecularBlend;
+                    } 
 					else sh = shaderSettings.Specular;
 				}
 
-				// Material
-				Material mat = new Material(sh);
-				mat.color = diffuseFactor;
+                Material mat = new Material(sh);
+                // Material
+                if (alphaMode == AlphaMode.BLEND)
+                {
+                    mat.SetOverrideTag("RenderType", "Transparent");
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", 0);
+                    mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    mat.SetShaderPassEnabled("ShadowCaster", false);
+                }
+                mat.color = diffuseFactor;
 				mat.SetColor("_SpecColor", specularFactor);
 				mat.SetFloat("_GlossyReflections", glossinessFactor);
 
